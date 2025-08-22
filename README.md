@@ -41,6 +41,7 @@
 Level Mode: đạt đủ điểm → qua màn → rắn nhanh hơn + màu nền thay đổi.
 
 Hoàn thành tất cả màn = Chiến thắng 🎉.
+
 👨‍💻 Tác giả : ME
 
 Viết bằng Python + Pygame.
