@@ -27,7 +27,10 @@ HS_FILE = "highscore.txt"
 def load_highscore():
     if os.path.exists(HS_FILE):
         with open(HS_FILE, "r") as f:
-            return int(f.read().strip())
+            try:
+                return int(f.read().strip())
+            except:
+                return 0
     return 0
 
 def save_highscore(score):
@@ -37,11 +40,21 @@ def save_highscore(score):
             f.write(str(score))
 
 def draw_text(surf, text, size, x, y, color=(255,255,255)):
-    font = pygame.font.SysFont(FONT_NAME, size)
+    try:
+        font = pygame.font.SysFont(FONT_NAME, size)
+    except:
+        font = pygame.font.Font(None, size)
     label = font.render(text, True, color)
     rect = label.get_rect()
     rect.center = (x, y)
     surf.blit(label, rect)
+
+def random_food(snake):
+    while True:
+        x = random.randrange(0, WIDTH, BLOCK)
+        y = random.randrange(0, HEIGHT, BLOCK)
+        if (x, y) not in snake:
+            return (x, y)
 
 # ===============================
 # Hàm chính game
@@ -51,19 +64,23 @@ def game_loop(mode="endless", difficulty="easy"):
     pygame.display.set_caption("🐍 Snake Game Python")
 
     clock = pygame.time.Clock()
-    snake = [(100, 50), (80, 50), (60, 50)]
+    # Khởi tạo rắn nằm trên lưới BLOCK
+    start_x = BLOCK * 5
+    start_y = BLOCK * 5
+    snake = [(start_x, start_y), (start_x - BLOCK, start_y), (start_x - 2*BLOCK, start_y)]
     direction = (BLOCK, 0)
-    food = (random.randrange(0, WIDTH, BLOCK), random.randrange(0, HEIGHT, BLOCK))
+    food = random_food(snake)
     score = 0
     highscore = load_highscore()
 
     # Biến cho level mode
     level_index = 0
     bg_color = (0, 0, 0)
+    fps = FPS  # Sử dụng biến cục bộ
 
     running = True
     while running:
-        clock.tick(FPS)
+        clock.tick(fps)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 save_highscore(score)
@@ -86,7 +103,8 @@ def game_loop(mode="endless", difficulty="easy"):
         # Ăn mồi
         if head == food:
             score += 1
-            food = (random.randrange(0, WIDTH, BLOCK), random.randrange(0, HEIGHT, BLOCK))
+            food = random_food(snake)
+            save_highscore(score)
         else:
             snake.pop()
 
@@ -112,7 +130,7 @@ def game_loop(mode="endless", difficulty="easy"):
                     return score
                 else:
                     # Tăng tốc & đổi màu nền
-                    FPS += 2
+                    fps += 2
                     bg_color = (random.randint(50,255), random.randint(50,255), random.randint(50,255))
 
         # Vẽ màn hình
@@ -121,7 +139,7 @@ def game_loop(mode="endless", difficulty="easy"):
             pygame.draw.rect(screen, (0,255,0), (s[0], s[1], BLOCK, BLOCK))
         pygame.draw.rect(screen, (255,0,0), (food[0], food[1], BLOCK, BLOCK))
         draw_text(screen, f"Score: {score}", 20, 50, 10)
-        draw_text(screen, f"High: {highscore}", 20, WIDTH-60, 10)
+        draw_text(screen, f"High: {load_highscore()}", 20, WIDTH-60, 10)
         pygame.display.flip()
 
 # ===============================
